@@ -1,0 +1,23 @@
+# Core
+numpy>=1.26.0
+pandas>=2.1.0
+scikit-learn>=1.4.0
+joblib>=1.3.0
+
+# Backend (FastAPI dashboard)
+fastapi>=0.110.0
+uvicorn[standard]>=0.29.0
+python-multipart>=0.0.9
+
+# Visualization (legacy/optional -- only needed if using the old
+# Streamlit app.py, not the FastAPI dashboard)
+matplotlib>=3.8.0
+plotly>=5.18.0
+streamlit>=1.31.0
+
+# Development & testing
+pytest>=8.0.0
+pytest-cov>=4.1.0
+
+# Utilities
+python-dotenv>=1.0.0

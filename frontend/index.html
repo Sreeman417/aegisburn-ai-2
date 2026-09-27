@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <meta
+        name="description"
+        content="AegisBurn AI intelligent component burn-in screening dashboard."
+    >
+
+    <title>
+        AegisBurn AI — Burn-In Screening
+    </title>
+
+    <!-- FastAPI-served CSS -->
+    <link
+        rel="stylesheet"
+        href="/static/style.css"
+    >
+</head>
+
+
+<body>
+
+    <!-- =====================================================
+         TOP BAR
+         ===================================================== -->
+
+    <header class="topbar">
+
+        <div class="brand">
+
+            <div class="brand-mark">
+                AB
+            </div>
+
+            <div>
+
+                <div class="brand-name">
+                    AegisBurn AI
+                </div>
+
+                <div class="brand-subtitle">
+                    Intelligent Component Burn-In Screening
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="system-status">
+
+            <span class="status-dot"></span>
+
+            <span id="systemStatus">
+                Connecting...
+            </span>
+
+        </div>
+
+    </header>
+
+
+
+    <!-- =====================================================
+         MAIN
+         ===================================================== -->
+
+    <main class="container">
+
+
+        <!-- =================================================
+             PAGE HEADER
+             ================================================= -->
+
+        <section class="page-header">
+
+            <div>
+
+                <div class="eyebrow">
+                    ISRO PROTOTYPE • PROBLEM STATEMENT 26170
+                </div>
+
+                <h1>
+                    AI-Driven Anomaly Detection
+                </h1>
+
+                <p>
+                    Detect abnormal early burn-in behaviour,
+                    predict the 168h component value, and
+                    prioritize components using explainable
+                    risk indicators.
+                </p>
+
+            </div>
+
+
+            <div class="header-actions">
+
+                <button
+                    class="button secondary"
+                    id="refreshButton"
+                    type="button"
+                >
+                    Refresh
+                </button>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =================================================
+             RISK OVERVIEW
+             ================================================= -->
+
+        <section class="risk-grid">
+
+
+            <!-- NORMAL -->
+
+            <div class="risk-card normal">
+
+                <div class="risk-card-top">
+
+                    <span class="risk-icon">
+                        ✓
+                    </span>
+
+                    <span>
+                        NORMAL
+                    </span>
+
+                </div>
+
+
+                <div
+                    class="risk-number"
+                    id="normalCount"
+                >
+                    —
+                </div>
+
+
+                <div class="risk-description">
+                    Components within expected behavioural range
+                </div>
+
+            </div>
+
+
+
+            <!-- REVIEW -->
+
+            <div class="risk-card review">
+
+                <div class="risk-card-top">
+
+                    <span class="risk-icon">
+                        !
+                    </span>
+
+                    <span>
+                        REVIEW
+                    </span>
+
+                </div>
+
+
+                <div
+                    class="risk-number"
+                    id="reviewCount"
+                >
+                    —
+                </div>
+
+
+                <div class="risk-description">
+                    Components requiring engineering review
+                </div>
+
+            </div>
+
+
+
+            <!-- HIGH RISK -->
+
+            <div class="risk-card high">
+
+                <div class="risk-card-top">
+
+                    <span class="risk-icon">
+                        !
+                    </span>
+
+                    <span>
+                        HIGH RISK
+                    </span>
+
+                </div>
+
+
+                <div
+                    class="risk-number"
+                    id="highRiskCount"
+                >
+                    —
+                </div>
+
+
+                <div class="risk-description">
+                    Components showing significant risk indicators
+                </div>
+
+            </div>
+
+
+
+            <!-- TOTAL -->
+
+            <div class="risk-card total">
+
+                <div class="risk-card-top">
+
+                    <span class="risk-icon">
+                        ◉
+                    </span>
+
+                    <span>
+                        TOTAL
+                    </span>
+
+                </div>
+
+
+                <div
+                    class="risk-number"
+                    id="totalCount"
+                >
+                    —
+                </div>
+
+
+                <div class="risk-description">
+                    Components available for screening
+                </div>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =================================================
+             COMPONENT INSPECTOR
+             ================================================= -->
+
+        <section class="section">
+
+
+            <div class="section-header">
+
+                <div>
+
+                    <div class="section-kicker">
+                        COMPONENT INSPECTOR
+                    </div>
+
+                    <h2>
+                        Detailed AI Screening
+                    </h2>
+
+                </div>
+
+
+                <div class="selector-area">
+
+                    <label
+                        for="componentSelect"
+                    >
+                        Component
+                    </label>
+
+                    <select
+                        id="componentSelect"
+                    >
+
+                        <option value="">
+                            Select a component...
+                        </option>
+
+                    </select>
+
+                </div>
+
+            </div>
+
+
+
+            <div id="componentPanel">
+
+                <div class="empty-state">
+
+                    Select a component to view
+                    its AI screening result.
+
+                </div>
+
+            </div>
+
+
+        </section>
+
+
+
+        <!-- =================================================
+             SCREENING TABLE
+             ================================================= -->
+
+        <section class="section">
+
+
+            <div class="section-header">
+
+                <div>
+
+                    <div class="section-kicker">
+                        SCREENING RESULTS
+                    </div>
+
+                    <h2>
+                        Component Overview
+                    </h2>
+
+                </div>
+
+
+                <div class="search-area">
+
+                    <input
+                        type="text"
+                        id="searchInput"
+                        placeholder="Search component..."
+                        autocomplete="off"
+                    >
+
+                </div>
+
+            </div>
+
+
+
+            <div class="table-wrap">
+
+                <table>
+
+                    <thead>
+
+                        <tr>
+
+                            <th>
+                                Component
+                            </th>
+
+                            <th>
+                                Type
+                            </th>
+
+                            <th>
+                                Parameter
+                            </th>
+
+                            <th>
+                                Lot
+                            </th>
+
+                            <th>
+                                0h
+                            </th>
+
+                            <th>
+                                24h
+                            </th>
+
+                            <th>
+                                Risk
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody id="componentTableBody">
+
+                        <tr>
+
+                            <td colspan="7">
+
+                                Select a component
+                                to begin screening.
+
+                            </td>
+
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+
+        </section>
+
+
+
+        <!-- =================================================
+             AI ARCHITECTURE
+             ================================================= -->
+
+        <section class="section">
+
+
+            <div class="section-header">
+
+                <div>
+
+                    <div class="section-kicker">
+                        AI ARCHITECTURE
+                    </div>
+
+                    <h2>
+                        How AegisBurn AI Makes a Decision
+                    </h2>
+
+                </div>
+
+            </div>
+
+
+
+            <div class="architecture">
+
+
+                <!-- STEP 1 -->
+
+                <div class="architecture-step">
+
+                    <span>
+                        01
+                    </span>
+
+                    <strong>
+                        Burn-In Measurements
+                    </strong>
+
+                    <small>
+                        Early component measurements
+                        from the burn-in screening process.
+                    </small>
+
+                </div>
+
+
+                <div class="architecture-arrow">
+                    →
+                </div>
+
+
+                <!-- STEP 2 -->
+
+                <div class="architecture-step">
+
+                    <span>
+                        02
+                    </span>
+
+                    <strong>
+                        Feature Engineering
+                    </strong>
+
+                    <small>
+                        Drift, slope, ratio and
+                        lot-normalized behavioural features.
+                    </small>
+
+                </div>
+
+
+                <div class="architecture-arrow">
+                    →
+                </div>
+
+
+                <!-- STEP 3 -->
+
+                <div class="architecture-step">
+
+                    <span>
+                        03
+                    </span>
+
+                    <strong>
+                        Anomaly Detection
+                    </strong>
+
+                    <small>
+                        Parameter-specific Isolation Forest
+                        identifies unusual early behaviour.
+                    </small>
+
+                </div>
+
+
+                <div class="architecture-arrow">
+                    →
+                </div>
+
+
+                <!-- STEP 4 -->
+
+                <div class="architecture-step">
+
+                    <span>
+                        04
+                    </span>
+
+                    <strong>
+                        168h Prediction
+                    </strong>
+
+                    <small>
+                        A parameter-specific regression model
+                        forecasts the future component value.
+                    </small>
+
+                </div>
+
+
+                <div class="architecture-arrow">
+                    →
+                </div>
+
+
+                <!-- STEP 5 -->
+
+                <div class="architecture-step">
+
+                    <span>
+                        05
+                    </span>
+
+                    <strong>
+                        Risk Engine
+                    </strong>
+
+                    <small>
+                        Anomaly, drift and limit indicators
+                        produce an explainable risk decision.
+                    </small>
+
+                </div>
+
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =================================================
+             PROTOTYPE NOTES
+             ================================================= -->
+
+        <section class="section">
+
+
+            <div class="section-header">
+
+                <div>
+
+                    <div class="section-kicker">
+                        ENGINEERING CONTEXT
+                    </div>
+
+                    <h2>
+                        Screening Interpretation
+                    </h2>
+
+                </div>
+
+            </div>
+
+
+            <div class="architecture">
+
+
+                <div class="architecture-step">
+
+                    <span>
+                        ANOMALY INDEX
+                    </span>
+
+                    <strong>
+                        Statistical behaviour
+                    </strong>
+
+                    <small>
+                        Higher values indicate increasingly
+                        unusual early-life behaviour relative
+                        to the reference population.
+                    </small>
+
+                </div>
+
+
+                <div class="architecture-step">
+
+                    <span>
+                        EARLY DRIFT INDEX
+                    </span>
+
+                    <strong>
+                        0h → 24h drift
+                    </strong>
+
+                    <small>
+                        Measures whether early observed drift
+                        is above the dynamic safety reference.
+                    </small>
+
+                </div>
+
+
+                <div class="architecture-step">
+
+                    <span>
+                        FUTURE DRIFT INDEX
+                    </span>
+
+                    <strong>
+                        Predicted trajectory
+                    </strong>
+
+                    <small>
+                        Indicates whether the projected 168h
+                        trajectory exceeds the expected safety trend.
+                    </small>
+
+                </div>
+
+
+                <div class="architecture-step">
+
+                    <span>
+                        LIMIT UTILIZATION
+                    </span>
+
+                    <strong>
+                        Engineering limit
+                    </strong>
+
+                    <small>
+                        Shows predicted 168h value relative to
+                        the prototype engineering threshold.
+                    </small>
+
+                </div>
+
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =================================================
+             FOOTER
+             ================================================= -->
+
+        <footer>
+
+            <div>
+                AegisBurn AI • Prototype Dashboard
+            </div>
+
+            <div>
+                AI prediction is intended as a
+                decision-support tool and does not replace
+                engineering qualification.
+            </div>
+
+        </footer>
+
+
+    </main>
+
+
+    <!-- =====================================================
+         JAVASCRIPT
+         ===================================================== -->
+
+    <script src="/static/app.js"></script>
+
+</body>
+
+</html>

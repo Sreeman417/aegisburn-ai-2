@@ -1,0 +1,9 @@
+component_id,component_type,parameter_name,unit,lot_id,temperature_c,value_0h,value_24h,value_96h,value_168h
+INPROG-0001,Logic IC,Iddq,µA,LOT-04,124.9,10.05,10.20,,
+INPROG-0002,Logic IC,Iddq,µA,LOT-08,125.2,9.95,11.35,,
+INPROG-0003,Memory IC,Standby Current,µA,LOT-16,124.6,24.85,25.30,,
+INPROG-0004,Memory IC,Standby Current,µA,LOT-12,126.1,25.05,28.60,,
+INPROG-0005,ADC,Leakage Current,µA,LOT-04,124.3,5.01,5.09,,
+INPROG-0006,ADC,Leakage Current,µA,LOT-20,125.0,5.08,6.70,,
+INPROG-0007,Driver IC,Propagation Delay,ns,LOT-10,125.4,18.12,18.28,,
+INPROG-0008,Driver IC,Propagation Delay,ns,LOT-17,126.0,18.05,19.35,,

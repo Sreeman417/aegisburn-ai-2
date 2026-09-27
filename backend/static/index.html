@@ -1,0 +1,1143 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        AegisBurn AI — Predictive Burn-In Screening
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="/static/style.css"
+    >
+
+</head>
+
+
+<body>
+
+    <!-- =========================================================
+         HEADER
+         ========================================================= -->
+
+    <header class="topbar">
+
+        <div class="brand">
+
+            <div class="brand-mark">
+                AB
+            </div>
+
+            <div>
+
+                <h1>
+                    AegisBurn AI
+                </h1>
+
+                <p>
+                    Predictive Burn-In Screening
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div class="system-status">
+
+            <span
+                id="systemStatusDot"
+                class="status-dot"
+            ></span>
+
+            <span id="systemStatus">
+                Connecting...
+            </span>
+
+        </div>
+
+    </header>
+
+
+    <!-- =========================================================
+         MAIN
+         ========================================================= -->
+
+    <main class="main-container">
+
+
+        <!-- =====================================================
+             HERO
+             ===================================================== -->
+
+        <section class="hero">
+
+            <div class="hero-content">
+
+                <div class="section-label">
+                    AI-DRIVEN RELIABILITY SCREENING
+                </div>
+
+                <h2>
+                    Detect early.
+                    <br>
+                    Predict ahead.
+                    <br>
+                    Prevent failure.
+                </h2>
+
+                <p>
+
+                    AegisBurn AI analyzes electronic component
+                    burn-in measurements to detect abnormal
+                    behavior, predict future degradation and
+                    identify potentially unreliable components
+                    before deployment.
+
+                </p>
+
+            </div>
+
+
+            <div class="hero-pipeline">
+
+                <div class="pipeline-step">
+
+                    <span>
+                        01
+                    </span>
+
+                    <strong>
+                        Burn-In Data
+                    </strong>
+
+                    <small>
+                        Measurements
+                    </small>
+
+                </div>
+
+
+                <div class="pipeline-arrow">
+                    →
+                </div>
+
+
+                <div class="pipeline-step">
+
+                    <span>
+                        02
+                    </span>
+
+                    <strong>
+                        Detection
+                    </strong>
+
+                    <small>
+                        Anomaly analysis
+                    </small>
+
+                </div>
+
+
+                <div class="pipeline-arrow">
+                    →
+                </div>
+
+
+                <div class="pipeline-step">
+
+                    <span>
+                        03
+                    </span>
+
+                    <strong>
+                        Prediction
+                    </strong>
+
+                    <small>
+                        Future drift
+                    </small>
+
+                </div>
+
+
+                <div class="pipeline-arrow">
+                    →
+                </div>
+
+
+                <div class="pipeline-step">
+
+                    <span>
+                        04
+                    </span>
+
+                    <strong>
+                        Risk
+                    </strong>
+
+                    <small>
+                        Risk scoring
+                    </small>
+
+                </div>
+
+
+                <div class="pipeline-arrow">
+                    →
+                </div>
+
+
+                <div class="pipeline-step">
+
+                    <span>
+                        05
+                    </span>
+
+                    <strong>
+                        Screening
+                    </strong>
+
+                    <small>
+                        Final decision
+                    </small>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =====================================================
+             CSV UPLOAD
+             ===================================================== -->
+
+        <section class="upload-section">
+
+
+            <div class="upload-card">
+
+                <div class="section-label">
+                    DATASET INPUT
+                </div>
+
+
+                <h2>
+                    Upload Your CSV Data
+                </h2>
+
+
+                <p class="upload-description">
+
+                    Upload your burn-in test CSV data to analyze
+                    electronic components using AegisBurn AI.
+
+                    The system will process the measurements,
+                    detect abnormal behavior, predict future
+                    degradation and calculate component risk.
+
+                </p>
+
+
+                <div
+                    id="csvDropzone"
+                    class="csv-dropzone"
+                    tabindex="0"
+                >
+
+                    <div class="upload-icon">
+                        ↑
+                    </div>
+
+
+                    <div class="upload-text">
+
+                        <strong id="csvFileLabel">
+
+                            Choose CSV file or
+                            drag and drop
+
+                        </strong>
+
+
+                        <span>
+
+                            CSV files only
+                            • Maximum 10 MB
+
+                        </span>
+
+                    </div>
+
+
+                    <input
+                        id="csvFileInput"
+                        type="file"
+                        accept=".csv,text/csv"
+                        hidden
+                    >
+
+                </div>
+
+
+                <div class="upload-actions">
+
+                    <button
+                        id="uploadCsvButton"
+                        class="upload-button"
+                        type="button"
+                        disabled
+                    >
+
+                        Upload &amp; Analyze
+
+                    </button>
+
+
+                    <span
+                        id="uploadStatus"
+                        class="upload-status"
+                    >
+
+                        Using the current project dataset.
+
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================================
+                 ACTIVE DATASET
+                 ================================================= -->
+
+            <div class="dataset-card">
+
+                <div class="section-label">
+                    ACTIVE DATASET
+                </div>
+
+
+                <h3 id="datasetName">
+                    Project Dataset
+                </h3>
+
+
+                <div class="dataset-stat">
+
+                    <span>
+                        Components
+                    </span>
+
+                    <strong id="datasetCount">
+                        —
+                    </strong>
+
+                </div>
+
+
+                <div class="dataset-stat">
+
+                    <span>
+                        Status
+                    </span>
+
+                    <strong id="datasetStatus">
+                        Ready
+                    </strong>
+
+                </div>
+
+
+                <div class="dataset-info">
+
+                    <span>
+                        AI models
+                    </span>
+
+                    <strong>
+                        Enabled
+                    </strong>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =====================================================
+             COMPONENT SEARCH
+             ===================================================== -->
+
+        <section class="component-section">
+
+            <div class="section-heading">
+
+                <div>
+
+                    <div class="section-label">
+                        COMPONENT SCREENING
+                    </div>
+
+                    <h2>
+                        Select Component
+                    </h2>
+
+                </div>
+
+
+                <div class="component-controls">
+
+                    <label
+                        for="componentSelect"
+                    >
+                        Component ID
+                    </label>
+
+
+                    <select
+                        id="componentSelect"
+                    >
+
+                        <option value="">
+                            Select a component
+                        </option>
+
+                    </select>
+
+
+                    <button
+                        id="analyzeButton"
+                        class="primary-button"
+                        type="button"
+                        disabled
+                    >
+
+                        Analyze Component
+
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <div
+                id="componentInfo"
+                class="component-info"
+            >
+
+                <div class="info-item">
+
+                    <span>
+                        Component
+                    </span>
+
+                    <strong id="componentId">
+                        —
+                    </strong>
+
+                </div>
+
+
+                <div class="info-item">
+
+                    <span>
+                        Type
+                    </span>
+
+                    <strong id="componentType">
+                        —
+                    </strong>
+
+                </div>
+
+
+                <div class="info-item">
+
+                    <span>
+                        Parameter
+                    </span>
+
+                    <strong id="parameterName">
+                        —
+                    </strong>
+
+                </div>
+
+
+                <div class="info-item">
+
+                    <span>
+                        Unit
+                    </span>
+
+                    <strong id="parameterUnit">
+                        —
+                    </strong>
+
+                </div>
+
+
+                <div class="info-item">
+
+                    <span>
+                        Lot
+                    </span>
+
+                    <strong id="lotId">
+                        —
+                    </strong>
+
+                </div>
+
+
+                <div class="info-item">
+
+                    <span>
+                        Temperature
+                    </span>
+
+                    <strong id="temperature">
+                        —
+                    </strong>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =====================================================
+             RESULTS
+             ===================================================== -->
+
+        <section
+            id="resultsSection"
+            class="results-section"
+        >
+
+
+            <!-- =================================================
+                 RISK RESULT
+                 ================================================= -->
+
+            <div class="result-panel risk-panel">
+
+                <div class="panel-header">
+
+                    <div>
+
+                        <div class="section-label">
+                            RISK ASSESSMENT
+                        </div>
+
+                        <h2>
+                            Component Risk
+                        </h2>
+
+                    </div>
+
+
+                    <span
+                        id="riskBadge"
+                        class="result-badge badge-normal"
+                    >
+                        NORMAL
+                    </span>
+
+                </div>
+
+
+                <div class="risk-score">
+
+                    <div class="risk-score-value">
+
+                        <strong id="riskScore">
+                            —
+                        </strong>
+
+                        <span>
+                            / 100
+                        </span>
+
+                    </div>
+
+
+                    <div class="risk-score-label">
+                        Overall Risk Score
+                    </div>
+
+                </div>
+
+
+                <div class="risk-bar">
+
+                    <div
+                        id="riskBar"
+                        class="risk-bar-fill"
+                    ></div>
+
+                </div>
+
+
+                <div class="risk-message">
+
+                    <span>
+                        Decision
+                    </span>
+
+                    <strong id="riskDecision">
+                        Select a component to begin analysis.
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================================
+                 ANOMALY DETECTION
+                 ================================================= -->
+
+            <div class="result-panel">
+
+                <div class="panel-header">
+
+                    <div>
+
+                        <div class="section-label">
+                            ANOMALY DETECTION
+                        </div>
+
+                        <h2>
+                            Early Behavior
+                        </h2>
+
+                    </div>
+
+
+                    <span
+                        id="anomalyBadge"
+                        class="result-badge badge-normal"
+                    >
+                        NORMAL
+                    </span>
+
+                </div>
+
+
+                <div class="metric-grid">
+
+                    <div class="metric">
+
+                        <span>
+                            Anomaly Index
+                        </span>
+
+                        <strong id="anomalyScore">
+                            —
+                        </strong>
+
+                    </div>
+
+
+                    <div class="metric">
+
+                        <span>
+                            Early Drift Index
+                        </span>
+
+                        <strong id="earlyDrift">
+                            —
+                        </strong>
+
+                    </div>
+
+
+                    <div class="metric">
+
+                        <span>
+                            0h Value
+                        </span>
+
+                        <strong id="value0h">
+                            —
+                        </strong>
+
+                    </div>
+
+
+                    <div class="metric">
+
+                        <span>
+                            24h Value
+                        </span>
+
+                        <strong id="value24h">
+                            —
+                        </strong>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================================
+                 FUTURE PREDICTION
+                 ================================================= -->
+
+            <div class="result-panel">
+
+                <div class="panel-header">
+
+                    <div>
+
+                        <div class="section-label">
+                            FUTURE DEGRADATION
+                        </div>
+
+                        <h2>
+                            168h Prediction
+                        </h2>
+
+                    </div>
+
+                </div>
+
+
+                <div class="prediction-value">
+
+                    <strong id="predicted168h">
+                        —
+                    </strong>
+
+                    <span id="predictionUnit">
+                        —
+                    </span>
+
+                </div>
+
+
+                <div class="metric-grid">
+
+                    <div class="metric">
+
+                        <span>
+                            Future Drift Index
+                        </span>
+
+                        <strong id="futureDrift">
+                            —
+                        </strong>
+
+                    </div>
+
+
+                    <div class="metric">
+
+                        <span>
+                            Predicted Slope
+                        </span>
+
+                        <strong id="predictedSlope">
+                            —
+                        </strong>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================================
+                 ENGINEERING LIMIT
+                 ================================================= -->
+
+            <div class="result-panel">
+
+                <div class="panel-header">
+
+                    <div>
+
+                        <div class="section-label">
+                            ENGINEERING LIMIT
+                        </div>
+
+                        <h2>
+                            Safety Utilization
+                        </h2>
+
+                    </div>
+
+                </div>
+
+
+                <div class="metric-grid">
+
+                    <div class="metric">
+
+                        <span>
+                            Limit Utilization
+                        </span>
+
+                        <strong id="limitUtilization">
+                            —
+                        </strong>
+
+                    </div>
+
+
+                    <div class="metric">
+
+                        <span>
+                            Engineering Limit
+                        </span>
+
+                        <strong id="engineeringLimit">
+                            —
+                        </strong>
+
+                    </div>
+
+                </div>
+
+
+                <div class="limit-bar-wrap">
+
+                    <div class="limit-bar-track">
+
+                        <div
+                            id="limitBar"
+                            class="limit-bar-fill"
+                        ></div>
+
+                    </div>
+
+
+                    <span id="limitBarLabel">
+
+                        Select a component to view
+                        engineering-limit utilization.
+
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================================
+                 BURN-IN MEASUREMENTS
+                 ================================================= -->
+
+            <div class="result-panel measurements-panel">
+
+                <div class="panel-header">
+
+                    <div>
+
+                        <div class="section-label">
+                            BURN-IN MEASUREMENTS
+                        </div>
+
+                        <h2>
+                            Parameter Trend
+                        </h2>
+
+                    </div>
+
+                </div>
+
+
+                <div class="chart-container">
+
+                    <div
+                        id="burnInChart"
+                    ></div>
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================================
+                 BEHAVIOR PATTERN CLASSIFICATION
+                 ================================================= -->
+
+            <div class="result-panel behavior-pattern-panel">
+
+                <div class="panel-header">
+
+                    <div>
+
+                        <div class="section-label">
+                            FAILURE MODE CLASSIFICATION
+                        </div>
+
+                        <h2>
+                            Behavior Pattern
+                        </h2>
+
+                    </div>
+
+                    <div
+                        id="behaviorPatternBadge"
+                        class="result-badge"
+                    >
+                        NORMAL
+                    </div>
+
+                </div>
+
+
+                <div class="behavior-pattern-body">
+
+                    <div
+                        id="behaviorPatternLabel"
+                        class="behavior-pattern-label"
+                    >
+                        Normal
+                    </div>
+
+                    <div
+                        id="behaviorPatternExplanation"
+                        class="behavior-pattern-explanation"
+                    >
+                        Analyze a component to see which failure
+                        pattern, if any, its trajectory resembles.
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================================
+                 REASONS
+                 ================================================= -->
+
+            <div class="result-panel reasons-panel">
+
+                <div class="panel-header">
+
+                    <div>
+
+                        <div class="section-label">
+                            EXPLAINABLE RESULT
+                        </div>
+
+                        <h2>
+                            Screening Reasons
+                        </h2>
+
+                    </div>
+
+                </div>
+
+
+                <div
+                    id="riskReasons"
+                    class="risk-reasons"
+                >
+
+                    <div class="empty-reasons">
+
+                        Analyze a component to see
+                        the reasons behind the screening decision.
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+        </section>
+
+
+        <!-- =====================================================
+             ARCHITECTURE
+             ===================================================== -->
+
+        <section class="architecture-section">
+
+            <div class="section-label">
+                SYSTEM ARCHITECTURE
+            </div>
+
+            <h2>
+                How AegisBurn AI Makes a Decision
+            </h2>
+
+
+            <div class="architecture-grid">
+
+
+                <div class="architecture-step">
+
+                    <span>
+                        01
+                    </span>
+
+                    <h3>
+                        Burn-In Measurements
+                    </h3>
+
+                    <p>
+                        0h and 24h component measurements
+                    </p>
+
+                </div>
+
+
+                <div class="architecture-arrow">
+                    →
+                </div>
+
+
+                <div class="architecture-step">
+
+                    <span>
+                        02
+                    </span>
+
+                    <h3>
+                        Feature Engineering
+                    </h3>
+
+                    <p>
+                        Drift, slope, ratio and
+                        lot-normalized features
+                    </p>
+
+                </div>
+
+
+                <div class="architecture-arrow">
+                    →
+                </div>
+
+
+                <div class="architecture-step">
+
+                    <span>
+                        03
+                    </span>
+
+                    <h3>
+                        Anomaly Detection
+                    </h3>
+
+                    <p>
+                        Parameter-specific Isolation Forest
+                    </p>
+
+                </div>
+
+
+                <div class="architecture-arrow">
+                    →
+                </div>
+
+
+                <div class="architecture-step">
+
+                    <span>
+                        04
+                    </span>
+
+                    <h3>
+                        168h Prediction
+                    </h3>
+
+                    <p>
+                        Parameter-specific regression model
+                    </p>
+
+                </div>
+
+
+                <div class="architecture-arrow">
+                    →
+                </div>
+
+
+                <div class="architecture-step">
+
+                    <span>
+                        05
+                    </span>
+
+                    <h3>
+                        Risk Engine
+                    </h3>
+
+                    <p>
+                        Explainable risk score and decision
+                    </p>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+    </main>
+
+
+    <!-- =========================================================
+         FOOTER
+         ========================================================= -->
+
+    <footer>
+
+        <span>
+            AegisBurn AI • Predictive Burn-In Screening
+        </span>
+
+        <span>
+            AI prediction is intended as a decision-support system.
+        </span>
+
+    </footer>
+
+
+    <!-- =========================================================
+         CHART.JS
+         ========================================================= -->
+
+    <script
+        src="https://cdn.jsdelivr.net/npm/chart.js"
+    ></script>
+
+
+    <!-- =========================================================
+         APPLICATION
+         ========================================================= -->
+
+    <script
+        src="/static/app.js"
+    ></script>
+
+
+</body>
+
+</html>
