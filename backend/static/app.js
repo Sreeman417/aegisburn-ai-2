@@ -669,6 +669,8 @@ async function analyzeComponent(
     state.selectedComponentId =
         componentId;
 
+    resetInspectorChat();
+
     setText(
         "componentStatus",
         `${componentId} AI screening in progress...`
@@ -3600,6 +3602,365 @@ function registerEvents() {
 
 
     registerUploadEvents();
+
+    registerInspectorEvents();
+
+    registerSidebarNav();
+}
+
+
+/* ============================================================
+   AI INSPECTOR
+   ============================================================ */
+
+const INSPECTOR_EMPTY_HTML =
+    '<div class="inspector-empty">' +
+    "Analyze a component, then ask a question below." +
+    "</div>";
+
+
+function resetInspectorChat() {
+
+    const log =
+        $("inspectorChatLog");
+
+    if (!log) {
+        return;
+    }
+
+    log.innerHTML =
+        INSPECTOR_EMPTY_HTML;
+}
+
+
+function appendInspectorMessage(
+    role,
+    text,
+    meta
+) {
+
+    const log =
+        $("inspectorChatLog");
+
+    if (!log) {
+        return null;
+    }
+
+    const empty =
+        log.querySelector(
+            ".inspector-empty"
+        );
+
+    if (empty) {
+        empty.remove();
+    }
+
+    const bubble =
+        document.createElement(
+            "div"
+        );
+
+    bubble.className =
+        `inspector-message inspector-${role}`;
+
+    const body =
+        document.createElement(
+            "div"
+        );
+
+    body.className =
+        "inspector-message-body";
+
+    // textContent (never innerHTML): answers contain values
+    // derived from uploaded data.
+    body.textContent = text;
+
+    bubble.appendChild(body);
+
+    if (meta) {
+
+        const metaElement =
+            document.createElement(
+                "div"
+            );
+
+        metaElement.className =
+            "inspector-message-meta";
+
+        metaElement.textContent =
+            meta;
+
+        bubble.appendChild(
+            metaElement
+        );
+    }
+
+    log.appendChild(bubble);
+
+    log.scrollTop =
+        log.scrollHeight;
+
+    return bubble;
+}
+
+
+async function askInspector(
+    question
+) {
+
+    const trimmed =
+        String(question || "")
+            .trim();
+
+    if (!trimmed) {
+        return;
+    }
+
+    const componentId =
+        state.selectedComponentId;
+
+    if (!componentId) {
+
+        appendInspectorMessage(
+            "assistant",
+            "Select and analyze a component first, " +
+            "then ask your question."
+        );
+
+        return;
+    }
+
+    const sendButton =
+        $("inspectorSendButton");
+
+    const input =
+        $("inspectorInput");
+
+    appendInspectorMessage(
+        "user",
+        trimmed
+    );
+
+    const pending =
+        appendInspectorMessage(
+            "assistant",
+            "Consulting this component's verified " +
+            "analysis..."
+        );
+
+    if (pending) {
+        pending.classList.add(
+            "inspector-pending"
+        );
+    }
+
+    if (sendButton) {
+        sendButton.disabled = true;
+    }
+
+    if (input) {
+        input.value = "";
+    }
+
+    try {
+
+        const response =
+            await apiRequest(
+                "/inspector/ask",
+                {
+                    method: "POST",
+                    body: {
+                        component_id:
+                            componentId,
+                        question: trimmed
+                    }
+                }
+            );
+
+        if (pending) {
+            pending.remove();
+        }
+
+        const sourceLabel =
+            response.source === "llm"
+                ? "Source: AI language model, grounded in " +
+                  "this component's computed data"
+                : "Source: rule-based explanation from " +
+                  "this component's computed data";
+
+        appendInspectorMessage(
+            "assistant",
+            response.answer ||
+            "No answer was returned.",
+            sourceLabel
+        );
+
+    } catch (error) {
+
+        console.error(
+            "AI Inspector request failed:",
+            error
+        );
+
+        if (pending) {
+            pending.remove();
+        }
+
+        appendInspectorMessage(
+            "assistant",
+            `The inspector could not answer: ${error.message}`
+        );
+
+    } finally {
+
+        if (sendButton) {
+            sendButton.disabled = false;
+        }
+    }
+}
+
+
+function registerInspectorEvents() {
+
+    const form =
+        $("inspectorForm");
+
+    if (form) {
+
+        form.addEventListener(
+            "submit",
+            event => {
+
+                event.preventDefault();
+
+                const input =
+                    $("inspectorInput");
+
+                askInspector(
+                    input
+                        ? input.value
+                        : ""
+                );
+            }
+        );
+    }
+
+    document
+        .querySelectorAll(
+            ".inspector-prompt-chip"
+        )
+        .forEach(chip => {
+
+            chip.addEventListener(
+                "click",
+                () => {
+
+                    askInspector(
+                        chip.dataset.prompt
+                    );
+                }
+            );
+        });
+}
+
+
+/* ============================================================
+   SIDEBAR NAVIGATION
+   ============================================================ */
+
+function registerSidebarNav() {
+
+    const navItems =
+        Array.from(
+            document.querySelectorAll(
+                ".sidebar-nav-item"
+            )
+        );
+
+    if (!navItems.length) {
+        return;
+    }
+
+    function setActive(
+        targetId
+    ) {
+
+        navItems.forEach(item => {
+
+            item.classList.toggle(
+                "active",
+                item.dataset.nav ===
+                targetId
+            );
+        });
+    }
+
+    navItems.forEach(item => {
+
+        item.addEventListener(
+            "click",
+            () => {
+
+                setActive(
+                    item.dataset.nav
+                );
+            }
+        );
+    });
+
+    const sections =
+        navItems
+            .map(item =>
+                $(item.dataset.nav)
+            )
+            .filter(Boolean);
+
+    if (
+        !sections.length ||
+        typeof IntersectionObserver ===
+        "undefined"
+    ) {
+        return;
+    }
+
+    const observer =
+        new IntersectionObserver(
+            entries => {
+
+                const visible =
+                    entries
+                        .filter(
+                            entry =>
+                                entry.isIntersecting
+                        )
+                        .sort(
+                            (a, b) =>
+                                b.intersectionRatio -
+                                a.intersectionRatio
+                        );
+
+                if (visible.length) {
+
+                    setActive(
+                        visible[0]
+                            .target.id
+                    );
+                }
+            },
+            {
+                rootMargin:
+                    "-20% 0px -60% 0px",
+                threshold:
+                    [0.1, 0.25, 0.5]
+            }
+        );
+
+    sections.forEach(section => {
+
+        observer.observe(
+            section
+        );
+    });
 }
 
 

@@ -1,8 +1,12 @@
 from __future__ import annotations
 
 import io
+import json
+import os
 import sys
 import traceback
+import urllib.error
+import urllib.request
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any
@@ -90,6 +94,11 @@ class AnalyzeRequest(BaseModel):
 class UploadCSVRequest(BaseModel):
     filename: str
     csv_text: str
+
+
+class InspectorRequest(BaseModel):
+    component_id: str
+    question: str
 
 
 # =============================================================================
@@ -2753,6 +2762,470 @@ async def analyze_component_get(
             status_code=500,
             detail=str(error),
         )
+
+
+# =============================================================================
+# AI INSPECTOR
+#
+# QA-facing chat that explains a component's screening decision.
+# Grounded strictly in that component's already-computed analysis
+# result (analyze_component's own output) -- it never invents
+# numbers and never overrides the actual risk decision. It can only
+# explain what the pipeline already decided.
+#
+# Works two ways:
+#   - If ANTHROPIC_API_KEY is set, questions are answered by an LLM
+#     whose system prompt embeds ONLY this component's data and is
+#     explicitly instructed never to state a number not present in
+#     it.
+#   - If no API key is configured, a deterministic template
+#     fallback answers the common QA questions directly from the
+#     same data, so the feature works with zero external setup or
+#     cost.
+# =============================================================================
+
+ANTHROPIC_API_URL = (
+    "https://api.anthropic.com/v1/messages"
+)
+
+ANTHROPIC_MODEL = "claude-sonnet-4-5-20250929"
+
+
+def build_inspector_context(
+    result: dict[str, Any],
+) -> dict[str, Any]:
+    """
+    The exact, closed set of facts the Inspector is allowed to
+    discuss for this component. Nothing outside this dict reaches
+    the LLM prompt or the template fallback -- this IS the
+    evidence-grounding guarantee.
+    """
+
+    return {
+        "component_id": result.get(
+            "component_id"
+        ),
+        "component_type": result.get(
+            "component_type"
+        ),
+        "parameter_name": result.get(
+            "parameter_name"
+        ),
+        "unit": result.get("unit"),
+        "lot_id": result.get("lot_id"),
+        "value_0h": result.get("value_0h"),
+        "value_24h": result.get("value_24h"),
+        "value_96h": result.get("value_96h"),
+        "value_168h": result.get("value_168h"),
+        "input_stage": result.get(
+            "input_stage"
+        ),
+        "anomaly_flag": result.get(
+            "anomaly_flag"
+        ),
+        "anomaly_index": result.get(
+            "anomaly_index"
+        ),
+        "lot_worst_hour": result.get(
+            "lot_worst_hour"
+        ),
+        "lot_worst_zscore": result.get(
+            "lot_worst_zscore"
+        ),
+        "lot_worst_value": result.get(
+            "lot_worst_value"
+        ),
+        "lot_worst_mean": result.get(
+            "lot_worst_mean"
+        ),
+        "predicted_168h": result.get(
+            "predicted_168h"
+        ),
+        "predicted_slope": result.get(
+            "predicted_slope"
+        ),
+        "prediction_input_stage": result.get(
+            "prediction_input_stage"
+        ),
+        "risk_score": result.get(
+            "risk_score"
+        ),
+        "risk_level": result.get(
+            "risk_level"
+        ),
+        "early_drift_index": result.get(
+            "early_drift_index"
+        ),
+        "future_drift_index": result.get(
+            "future_drift_index"
+        ),
+        "limit_utilization": result.get(
+            "limit_utilization"
+        ),
+        "engineering_limit": result.get(
+            "engineering_limit"
+        ),
+        "behavior_pattern": result.get(
+            "behavior_pattern"
+        ),
+        "behavior_pattern_label": result.get(
+            "behavior_pattern_label"
+        ),
+        "behavior_pattern_explanation": result.get(
+            "behavior_pattern_explanation"
+        ),
+        "reasons": result.get(
+            "reasons",
+            [],
+        ),
+        "recommendation": result.get(
+            "recommendation"
+        ),
+    }
+
+
+def template_inspector_answer(
+    context: dict[str, Any],
+    question: str,
+) -> str:
+    """
+    Deterministic, evidence-grounded answer built directly from
+    context -- no LLM required. Covers the common QA question
+    shapes; falls back to a full evidence dump for anything else.
+    """
+
+    q = question.lower()
+
+    flagged = bool(
+        context.get("anomaly_flag")
+    )
+
+    risk_level = (
+        context.get("risk_level")
+        or "LOW"
+    )
+
+    pattern_label = (
+        context.get(
+            "behavior_pattern_label"
+        )
+        or "Normal"
+    )
+
+    reasons = (
+        context.get("reasons")
+        or []
+    )
+
+    if (
+        "material" in q
+        or "physics" in q
+        or "cause" in q
+        or "mechanism" in q
+    ):
+
+        return (
+            "This system does not model physical failure "
+            "mechanisms or materials -- it is a statistical "
+            "screening layer over parametric burn-in "
+            "measurements. It cannot attribute a flag to a "
+            "specific physical cause; it can only report which "
+            "measurements deviated and by how much (see the "
+            "reasons list) so an engineer can investigate the "
+            "underlying physics."
+        )
+
+    if (
+        "forecast" in q
+        or "predict" in q
+    ):
+
+        return (
+            f"Predicted 168h value: "
+            f"{context.get('predicted_168h')} "
+            f"{context.get('unit') or ''}. "
+            f"Predicted slope: {context.get('predicted_slope')} "
+            f"per hour. This was generated using the "
+            f"{context.get('prediction_input_stage')} model tier "
+            "(the model never uses the actual future value, only "
+            "early measurements)."
+        )
+
+    if (
+        "difference" in q
+        and (
+            "drift" in q
+            or "slope" in q
+        )
+    ):
+
+        return (
+            "Early drift index reflects how much the value moved "
+            f"in the first 0-24h relative to the engineering "
+            f"limit ({context.get('early_drift_index')}/100). "
+            "Future drift index reflects how much the PREDICTED "
+            "168h value is expected to move relative to the "
+            f"limit ({context.get('future_drift_index')}/100). "
+            "The safety slope is the predicted rate of change "
+            f"({context.get('predicted_slope')} per hour) used to "
+            "flag components on a trajectory toward the limit "
+            "before burn-in finishes."
+        )
+
+    if (
+        "still use" in q
+        or "spacecraft" in q
+        or "flight" in q
+        or "deploy" in q
+    ):
+
+        return (
+            f"That is an engineering/programmatic decision, not "
+            f"something this tool makes. What it reports: risk "
+            f"level {risk_level}, risk score "
+            f"{context.get('risk_score')}/100, pattern "
+            f"'{pattern_label}'. The recommendation on record is: "
+            f"\"{context.get('recommendation')}\""
+        )
+
+    if (
+        "lot" in q
+        and not (
+            "why" in q
+            and "flag" in q
+        )
+    ):
+
+        if context.get("lot_worst_hour"):
+
+            return (
+                f"At {context.get('lot_worst_hour')}, this "
+                f"component reads {context.get('lot_worst_value')} "
+                f"vs. its own lot's average of "
+                f"{context.get('lot_worst_mean')} "
+                f"({context.get('lot_worst_zscore')} sigma from "
+                f"lot baseline). Lot: {context.get('lot_id')}."
+            )
+
+        return (
+            f"No significant lot-relative deviation was recorded "
+            f"for this component. Lot: {context.get('lot_id')}."
+        )
+
+    if (
+        "why" in q
+        and "flag" in q
+    ) or (
+        "flagged" in q
+        and (
+            "why" in q
+            or "reason" in q
+            or "explain" in q
+        )
+    ) or q.strip() in (
+        "why?",
+        "why",
+    ):
+
+        if not flagged and risk_level == "LOW":
+
+            return (
+                f"{context.get('component_id')} was not flagged. "
+                f"Anomaly index is "
+                f"{context.get('anomaly_index')}, risk level is "
+                f"{risk_level}, and the behavior pattern is "
+                f"classified as '{pattern_label}'. No screening "
+                "reasons were triggered."
+            )
+
+        reason_text = (
+            " ".join(reasons)
+            if reasons
+            else "no specific reasons were recorded."
+        )
+
+        return (
+            f"{context.get('component_id')} was classified as "
+            f"'{pattern_label}' with risk level {risk_level} "
+            f"(risk score {context.get('risk_score')}/100). "
+            f"Anomaly index: {context.get('anomaly_index')}. "
+            f"Reasons: {reason_text}"
+        )
+
+    # Fallback: full evidence dump.
+    return (
+        f"{context.get('component_id')} "
+        f"({context.get('component_type')} / "
+        f"{context.get('parameter_name')}): "
+        f"risk={risk_level} "
+        f"(score {context.get('risk_score')}/100), "
+        f"pattern='{pattern_label}', "
+        f"anomaly_index={context.get('anomaly_index')}, "
+        f"predicted_168h={context.get('predicted_168h')} "
+        f"{context.get('unit') or ''}, "
+        f"limit_utilization={context.get('limit_utilization')}%. "
+        f"Reasons: {' '.join(reasons) if reasons else 'none recorded.'}"
+    )
+
+
+def call_anthropic_inspector(
+    context: dict[str, Any],
+    question: str,
+) -> str | None:
+    """
+    Calls the Anthropic API with a system prompt hard-locked to
+    this component's evidence dict. Returns None (triggering the
+    template fallback) if no API key is configured or the call
+    fails for any reason -- this must never crash the endpoint.
+    """
+
+    api_key = os.environ.get(
+        "ANTHROPIC_API_KEY"
+    )
+
+    if not api_key:
+        return None
+
+    system_prompt = (
+        "You are a QA inspection assistant for AegisBurn AI, a "
+        "component burn-in screening system. You are given a "
+        "single component's already-computed analysis as JSON "
+        "below. Answer the QA engineer's question using ONLY the "
+        "numbers and facts in this JSON.\n\n"
+        "STRICT RULES:\n"
+        "- Never state a number that is not present in the JSON.\n"
+        "- Never override, second-guess, or contradict the "
+        "risk_level, anomaly_flag, or behavior_pattern already "
+        "decided -- you explain the decision, you do not remake "
+        "it.\n"
+        "- If the question asks about something not covered by "
+        "this data (e.g. physical failure mechanisms, materials, "
+        "deployment authorization), say plainly that this tool "
+        "does not have that information rather than guessing.\n"
+        "- Keep answers concise and technical, suitable for a QA "
+        "engineer.\n\n"
+        f"COMPONENT DATA:\n{json.dumps(context, indent=2, default=str)}"
+    )
+
+    payload = {
+        "model": ANTHROPIC_MODEL,
+        "max_tokens": 500,
+        "system": system_prompt,
+        "messages": [
+            {
+                "role": "user",
+                "content": question,
+            }
+        ],
+    }
+
+    request = urllib.request.Request(
+        ANTHROPIC_API_URL,
+        data=json.dumps(payload).encode(
+            "utf-8"
+        ),
+        headers={
+            "Content-Type": "application/json",
+            "x-api-key": api_key,
+            "anthropic-version": "2023-06-01",
+        },
+        method="POST",
+    )
+
+    try:
+
+        with urllib.request.urlopen(
+            request,
+            timeout=20,
+        ) as response:
+
+            body = json.loads(
+                response.read().decode(
+                    "utf-8"
+                )
+            )
+
+        text_blocks = [
+            block.get("text", "")
+            for block in body.get(
+                "content",
+                [],
+            )
+            if block.get("type") == "text"
+        ]
+
+        answer = "".join(
+            text_blocks
+        ).strip()
+
+        return answer or None
+
+    except (
+        urllib.error.URLError,
+        urllib.error.HTTPError,
+        TimeoutError,
+        ValueError,
+        KeyError,
+    ) as error:
+
+        print(
+            f"AI Inspector LLM call failed, "
+            f"falling back to template: {error}"
+        )
+
+        return None
+
+
+@app.post("/inspector/ask")
+async def inspector_ask(
+    request: InspectorRequest,
+):
+
+    try:
+
+        result = analyze_component(
+            request.component_id
+        )
+
+    except Exception as error:
+
+        raise HTTPException(
+            status_code=404,
+            detail=(
+                f"Component not found or analysis failed: "
+                f"{error}"
+            ),
+        )
+
+    context = build_inspector_context(
+        result
+    )
+
+    llm_answer = call_anthropic_inspector(
+        context,
+        request.question,
+    )
+
+    if llm_answer is not None:
+
+        return {
+            "answer": llm_answer,
+            "source": "llm",
+            "grounded_in": context,
+        }
+
+    template_answer = (
+        template_inspector_answer(
+            context,
+            request.question,
+        )
+    )
+
+    return {
+        "answer": template_answer,
+        "source": "template",
+        "grounded_in": context,
+    }
 
 
 # =============================================================================

@@ -24,47 +24,136 @@
 
 <body>
 
-    <!-- =========================================================
-         HEADER
-         ========================================================= -->
+    <div class="app-shell">
 
-    <header class="topbar">
+        <!-- =====================================================
+             SIDEBAR
+             ===================================================== -->
 
-        <div class="brand">
+        <aside class="sidebar" id="sidebar">
 
-            <div class="brand-mark">
-                AB
+            <div class="sidebar-brand">
+
+                <div class="sidebar-brand-mark">
+                    AB
+                </div>
+
+                <div class="sidebar-brand-text">
+
+                    <h1>
+                        AegisBurn
+                    </h1>
+
+                    <p>
+                        Predictive Burn-In AI
+                    </p>
+
+                </div>
+
             </div>
 
-            <div>
 
-                <h1>
-                    AegisBurn AI
-                </h1>
+            <nav class="sidebar-nav">
 
-                <p>
-                    Predictive Burn-In Screening
-                </p>
+                <div class="sidebar-nav-group">
+
+                    <div class="sidebar-nav-label">
+                        Workspace
+                    </div>
+
+                    <a
+                        href="#overview"
+                        class="sidebar-nav-item active"
+                        data-nav="overview"
+                    >
+                        <span class="sidebar-nav-icon">◆</span>
+                        Overview
+                    </a>
+
+                    <a
+                        href="#uploadSection"
+                        class="sidebar-nav-item"
+                        data-nav="uploadSection"
+                    >
+                        <span class="sidebar-nav-icon">⇧</span>
+                        Upload Data
+                    </a>
+
+                    <a
+                        href="#analyzeSection"
+                        class="sidebar-nav-item"
+                        data-nav="analyzeSection"
+                    >
+                        <span class="sidebar-nav-icon">▣</span>
+                        Analyze Component
+                    </a>
+
+                    <a
+                        href="#resultsSection"
+                        class="sidebar-nav-item"
+                        data-nav="resultsSection"
+                    >
+                        <span class="sidebar-nav-icon">◈</span>
+                        Screening Results
+                    </a>
+
+                    <a
+                        href="#inspectorPanel"
+                        class="sidebar-nav-item"
+                        data-nav="inspectorPanel"
+                    >
+                        <span class="sidebar-nav-icon">✦</span>
+                        AI Inspector
+                    </a>
+
+                </div>
+
+
+                <div class="sidebar-nav-group">
+
+                    <div class="sidebar-nav-label">
+                        System
+                    </div>
+
+                    <a
+                        href="#architectureSection"
+                        class="sidebar-nav-item"
+                        data-nav="architectureSection"
+                    >
+                        <span class="sidebar-nav-icon">◉</span>
+                        Architecture
+                    </a>
+
+                </div>
+
+            </nav>
+
+
+            <div class="sidebar-footer">
+
+                <div class="sidebar-status">
+
+                    <span
+                        id="systemStatusDot"
+                        class="status-dot"
+                    ></span>
+
+                    <span id="systemStatus">
+                        Connecting...
+                    </span>
+
+                </div>
+
+                <div class="sidebar-version">
+                    AegisBurn AI · v1.0
+                </div>
 
             </div>
 
-        </div>
+        </aside>
 
 
-        <div class="system-status">
-
-            <span
-                id="systemStatusDot"
-                class="status-dot"
-            ></span>
-
-            <span id="systemStatus">
-                Connecting...
-            </span>
-
-        </div>
-
-    </header>
+        <div class="app-content">
 
 
     <!-- =========================================================
@@ -78,7 +167,7 @@
              HERO
              ===================================================== -->
 
-        <section class="hero">
+        <section class="hero" id="overview">
 
             <div class="hero-content">
 
@@ -222,7 +311,7 @@
              CSV UPLOAD
              ===================================================== -->
 
-        <section class="upload-section">
+        <section class="upload-section" id="uploadSection">
 
 
             <div class="upload-card">
@@ -381,7 +470,7 @@
              COMPONENT SEARCH
              ===================================================== -->
 
-        <section class="component-section">
+        <section class="component-section" id="analyzeSection">
 
             <div class="section-heading">
 
@@ -969,6 +1058,116 @@
             </div>
 
 
+            <!-- =================================================
+                 AI INSPECTOR
+                 ================================================= -->
+
+            <div class="result-panel inspector-panel" id="inspectorPanel">
+
+                <div class="panel-header">
+
+                    <div>
+
+                        <div class="section-label">
+                            QA ASSISTANT
+                        </div>
+
+                        <h2>
+                            AI Inspector
+                        </h2>
+
+                    </div>
+
+                    <div class="inspector-guarantee-badge">
+                        EVIDENCE-GROUNDED
+                    </div>
+
+                </div>
+
+                <div class="inspector-note">
+                    Answers are grounded strictly in this
+                    component's own computed analysis. The
+                    Inspector explains the screening decision —
+                    it never remakes it.
+                </div>
+
+
+                <div
+                    id="inspectorChatLog"
+                    class="inspector-chat-log"
+                >
+
+                    <div class="inspector-empty">
+                        Analyze a component, then ask a question
+                        below.
+                    </div>
+
+                </div>
+
+
+                <div class="inspector-suggested-prompts">
+
+                    <button
+                        type="button"
+                        class="inspector-prompt-chip"
+                        data-prompt="Why was this device flagged?"
+                    >
+                        Why was this flagged?
+                    </button>
+
+                    <button
+                        type="button"
+                        class="inspector-prompt-chip"
+                        data-prompt="What does the forecast indicate?"
+                    >
+                        What does the forecast indicate?
+                    </button>
+
+                    <button
+                        type="button"
+                        class="inspector-prompt-chip"
+                        data-prompt="What is the difference between degradation rate and safety slope?"
+                    >
+                        Drift index vs. safety slope?
+                    </button>
+
+                    <button
+                        type="button"
+                        class="inspector-prompt-chip"
+                        data-prompt="Explain why this unit was flagged in relation to its lot."
+                    >
+                        Lot-relative deviation?
+                    </button>
+
+                </div>
+
+
+                <form
+                    id="inspectorForm"
+                    class="inspector-form"
+                >
+
+                    <input
+                        type="text"
+                        id="inspectorInput"
+                        class="inspector-input"
+                        placeholder="Ask about anomaly scores, drift, or forecasts..."
+                        autocomplete="off"
+                    />
+
+                    <button
+                        type="submit"
+                        id="inspectorSendButton"
+                        class="inspector-send-button"
+                    >
+                        Send
+                    </button>
+
+                </form>
+
+            </div>
+
+
         </section>
 
 
@@ -976,7 +1175,7 @@
              ARCHITECTURE
              ===================================================== -->
 
-        <section class="architecture-section">
+        <section class="architecture-section" id="architectureSection">
 
             <div class="section-label">
                 SYSTEM ARCHITECTURE
@@ -1118,6 +1317,13 @@
         </span>
 
     </footer>
+
+
+        </div>
+        <!-- /app-content -->
+
+    </div>
+    <!-- /app-shell -->
 
 
     <!-- =========================================================
